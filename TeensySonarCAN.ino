@@ -69,8 +69,8 @@ void loop(void)
       msg.len = 8;
       msg.id = 0x222;
 
-      msg.buf[0] = distance && 0xff;
-      msg.buf[1] = (distance >> 8) && 0xff;
+      msg.buf[0] = distance & 0xff;
+      msg.buf[1] = (distance >> 8) & 0xff;
       
 
       CANbus.write(msg);
