@@ -1,39 +1,15 @@
-
 #define trigPin 18
 #define echoPin 19
 
 #include <FlexCAN.h>
-
+#include <FRCTeensyCAN.h>
 
 
 int led = 13;
-FlexCAN CANbus(1000000);
-static CAN_message_t msg, rxmsg;
-static uint8_t hex[17] = "0123456789abcdef";
+FRCTeensyCAN can(0x222);
 
-int txCount, rxCount;
-unsigned int txTimer, rxTimer;
-
-
-// -------------------------------------------------------------
-static void hexDump(uint8_t dumpLen, uint8_t *bytePtr)
-{
-  uint8_t working;
-  while ( dumpLen-- ) {
-    working = *bytePtr++;
-    Serial.write( hex[ working >> 4 ] );
-    Serial.write( hex[ working & 15 ] );
-  }
-}
-
-
-CAN_filter_t filter;
-// -------------------------------------------------------------
 void setup(void)
 {
-  filter.id = 0x222;
-  CANbus.begin(filter);
-  //CANbus.setFilter(0x222, 0);
   pinMode(led, OUTPUT);
 
   delay(1000);
@@ -44,41 +20,7 @@ void setup(void)
 
 }
 
-
 int duration, distance;
-
-
-
-// -------------------------------------------------------------
-void loop(void)
-{
-  while ( CANbus.read(rxmsg) ) {
-    if (rxmsg.id == 0x222) {
-      Serial.print("T: ");
-      Serial.print(millis());
-      Serial.print(" ID: 0x");
-      hexDump( sizeof(rxmsg.id), (uint8_t *)&rxmsg.id );
-      Serial.print(" MSG: 0x");
-      hexDump( sizeof(rxmsg.buf), (uint8_t *)&rxmsg.buf );
-      Serial.print(" ASCII: ");
-      for ( int i = 0; i < sizeof(rxmsg.buf); i++) {
-        Serial.write(rxmsg.buf[i]);
-      }
-      Serial.println();
-
-      msg.len = 8;
-      msg.id = 0x222;
-
-      msg.buf[0] = distance & 0xff;
-      msg.buf[1] = (distance >> 8) & 0xff;
-      
-
-      CANbus.write(msg);
-    }
-  }
-
-  readSonar();
-}
 
 void readSonar() {
 
@@ -95,12 +37,32 @@ void readSonar() {
   else {
     digitalWrite(led, LOW);
   }
-  if (distance >= 4000 || distance <= 50) {
+ /* if (distance >= 4000 || distance <= 50) {
     Serial.println("Out of range");
     distance = 0;
   }
   else {
     Serial.print(distance);
     Serial.println(" mm");
-  }
+  }*/
 }
+// -------------------------------------------------------------
+void loop(void)
+{
+  can.getMessages();
+  if(can.available() > 0){
+    uint8_t * txdata = (uint8_t *) malloc(8);
+    can.read(txdata);
+    txdata[0] = distance & 0xff;
+    txdata[1] = (distance >> 8) & 0xff;
+
+    for(int i = 2; i < 8; i++){
+      txdata[i] = 0;
+    }
+
+    can.write(txdata);
+  }
+
+  readSonar();
+}
+
