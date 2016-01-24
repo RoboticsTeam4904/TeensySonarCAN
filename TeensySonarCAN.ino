@@ -2,14 +2,16 @@
 #define echoPin 19
 
 #include <FlexCAN.h>
-#include <FRCTeensyCAN.h>
+#include <TeensyCANBase.h>
 
 
 int led = 13;
-FRCTeensyCAN can(0x222);
+TeensyCANBase can(0x222);
 
 void setup(void)
 {
+  can.begin();
+  
   pinMode(led, OUTPUT);
 
   delay(1000);
@@ -37,30 +39,31 @@ void readSonar() {
   else {
     digitalWrite(led, LOW);
   }
- /* if (distance >= 4000 || distance <= 50) {
+  if (distance >= 4000 || distance <= 50) {
     Serial.println("Out of range");
     distance = 0;
   }
   else {
     Serial.print(distance);
     Serial.println(" mm");
-  }*/
+  }
 }
 // -------------------------------------------------------------
 void loop(void)
 {
-  can.getMessages();
   if(can.available() > 0){
     uint8_t * txdata = (uint8_t *) malloc(8);
-    can.read(txdata);
-    txdata[0] = distance & 0xff;
-    txdata[1] = (distance >> 8) & 0xff;
-
-    for(int i = 2; i < 8; i++){
-      txdata[i] = 0;
+    if(can.read(txdata) == 0){
+      txdata[0] = distance & 0xff;
+      txdata[1] = (distance >> 8) & 0xff;
+      
+      for(int i = 2; i < 8; i++){
+        txdata[i] = 0;
+      }
+      
+      can.write(txdata);
     }
-
-    can.write(txdata);
+    delete txdata;
   }
 
   readSonar();
