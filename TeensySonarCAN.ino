@@ -8,14 +8,13 @@
 int led = 13;
 TeensyCANBase can(0x222);
 
-void setup(void)
-{
+void setup(void) {
   can.begin();
-  
+
   pinMode(led, OUTPUT);
 
   delay(1000);
-  Serial.println(F("Hello Teensy 3.1 CAN Test."));
+  Serial.println(F("Teensy 3.x CAN Sonar Sensor"));
 
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
@@ -34,7 +33,7 @@ void readSonar() {
   duration = pulseIn(echoPin, HIGH, 500000);
   distance = (duration / 2.0) / 2.91;
   if (distance < 300) {  // This is where the LED On/Off happens
-    digitalWrite(led, HIGH); // When the Red condition is met, the Green LED should turn off
+    digitalWrite(led, HIGH);
   }
   else {
     digitalWrite(led, LOW);
@@ -49,18 +48,17 @@ void readSonar() {
   }
 }
 // -------------------------------------------------------------
-void loop(void)
-{
-  if(can.available() > 0){
+void loop(void) {
+  if (can.available() > 0) {
     uint8_t * txdata = (uint8_t *) malloc(8);
-    if(can.read(txdata) == 0){
+    if (can.read(txdata) == 0) {
       txdata[0] = distance & 0xff;
       txdata[1] = (distance >> 8) & 0xff;
-      
-      for(int i = 2; i < 8; i++){
+
+      for (int i = 2; i < 8; i++) {
         txdata[i] = 0;
       }
-      
+
       can.write(txdata);
     }
     delete txdata;
