@@ -1,0 +1,9 @@
+TeensySonarCAN
+==============
+
+This program reads a single ultrasonic sensor and returns
+its value over the CAN bus to the RoboRIO. It is directly
+compatible with the CANSensor class (using read(0)).
+
+It relies on the FRCTeensyCAN library:
+	https://github.com/RoboticsTeam4904/FRCTeensyCAN
