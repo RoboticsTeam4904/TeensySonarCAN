@@ -1,12 +1,12 @@
-#define trigPin 18
-#define echoPin 19
+#define trigPin 5
+#define echoPin 6
 
 #include <FlexCAN.h>
 #include <TeensyCANBase.h>
 
 
 int led = 13;
-TeensyCANBase can(0x222);
+TeensyCANBase can(0x610);
 
 void setup(void) {
   can.begin();
